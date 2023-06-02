@@ -28,13 +28,17 @@ SPEED = 40
 
 class SnakeGameAI:
 
-    def __init__(self, w=640, h=480):
+    def __init__(self, showui=False, w=640, h=480):
         self.w = w
         self.h = h
-        # init display
-        self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
-        self.clock = pygame.time.Clock()
+        self.showui = showui
+
+        if self.showui:
+            # init display
+            self.display = pygame.display.set_mode((self.w, self.h))
+            pygame.display.set_caption('Snake')
+            self.clock = pygame.time.Clock()
+
         self.reset()
 
 
@@ -63,11 +67,13 @@ class SnakeGameAI:
 
     def play_step(self, action):
         self.frame_iteration += 1
-        # 1. collect user input
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+
+        if self.showui:
+            # 1. collect user input
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
         
         # 2. move
         self._move(action) # update the head
@@ -90,9 +96,11 @@ class SnakeGameAI:
         else:
             self.snake.pop()
         
-        # 5. update ui and clock
-        self._update_ui()
-        self.clock.tick(SPEED)
+        if self.showui:
+            # 5. update ui and clock
+            self._update_ui()
+            self.clock.tick(SPEED)
+            
         # 6. return game over and score
         return reward, game_over, self.score
 
