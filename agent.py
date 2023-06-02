@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from game import SnakeGameAI, Direction, Point
+from game import SnakeGameAI, Direction, Point, BLOCK_SIZE
 from model import Linear_QNet, QTrainer
 from helper import plot
 
@@ -17,7 +17,7 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(779, 1024, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -64,6 +64,14 @@ class Agent:
             game.food.y < game.head.y,  # food up
             game.food.y > game.head.y  # food down
             ]
+
+        body = np.zeros((game.w//BLOCK_SIZE, game.h//BLOCK_SIZE), dtype=int)
+        for point in game.snake:
+            for point in game.snake:
+                x = int(min(point.x//BLOCK_SIZE, game.w//BLOCK_SIZE - 1))
+                y = int(min(point.y//BLOCK_SIZE, game.h//BLOCK_SIZE - 1))
+                body[x][y] = 1
+        state += body.flatten().tolist()
 
         return np.array(state, dtype=int)
 

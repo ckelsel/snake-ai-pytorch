@@ -85,6 +85,7 @@ class SnakeGameAI:
         if self.head == self.food:
             self.score += 1
             reward = 10
+            self.frame_iteration = 0
             self._place_food()
         else:
             self.snake.pop()
