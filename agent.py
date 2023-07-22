@@ -11,15 +11,14 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 class Agent:
-
     def __init__(self):
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(779, 1024, 3)
+        self.memory = deque(maxlen=MAX_MEMORY)
+        self.model = Linear_QNet(779, 1024, 3, self.device)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
-
 
     def get_state(self, game):
         head = game.snake[0]
@@ -67,10 +66,9 @@ class Agent:
 
         body = np.zeros((game.w//BLOCK_SIZE, game.h//BLOCK_SIZE), dtype=int)
         for point in game.snake:
-            for point in game.snake:
-                x = int(min(point.x//BLOCK_SIZE, game.w//BLOCK_SIZE - 1))
-                y = int(min(point.y//BLOCK_SIZE, game.h//BLOCK_SIZE - 1))
-                body[x][y] = 1
+            x = int(min(point.x//BLOCK_SIZE, game.w//BLOCK_SIZE - 1))
+            y = int(min(point.y//BLOCK_SIZE, game.h//BLOCK_SIZE - 1))
+            body[x][y] = 1
         state += body.flatten().tolist()
 
         return np.array(state, dtype=int)
@@ -100,12 +98,12 @@ class Agent:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
-            state0 = torch.tensor(state, dtype=torch.float)
+            state0 = torch.tensor(state, dtype=torch.float).to(self.model.device)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
-
         return final_move
+
 
 
 def train():
@@ -114,7 +112,7 @@ def train():
     total_score = 0
     record = 0
     agent = Agent()
-    game = SnakeGameAI()
+    game = SnakeGameAI(showui=True)
     while True:
         # get old state
         state_old = agent.get_state(game)
